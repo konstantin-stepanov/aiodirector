@@ -3,4 +3,4 @@
 """Top-level package for aiodirector."""
 
 __author__ = """Konstantin Stepanov"""
-__version__ = '0.0.1b1'
+__version__ = '0.0.1b2'
