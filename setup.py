@@ -38,8 +38,9 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
     test_suite='tests',
-    tests_require=test_requirements.split('\n'),
+    tests_require=list(filter(lambda a: a, test_requirements.split('\n'))),
 )
