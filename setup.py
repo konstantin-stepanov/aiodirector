@@ -28,7 +28,7 @@ setup(
     url='https://github.com/konstantin-stepanov/aiodirector',
     packages=find_packages(include=['aiodirector']),
     include_package_data=True,
-    install_requires=requirements.split('\n'),
+    install_requires=list(filter(lambda a: a, requirements.split('\n'))),
     license="MIT license",
     zip_safe=False,
     keywords='aiodirector',
