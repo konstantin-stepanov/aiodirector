@@ -104,7 +104,7 @@ def _json_encoder(obj):
     if isinstance(obj, bytes):
         try:
             return obj.decode('UTF8')
-        except:
+        except Exception:
             return str(obj)
     return repr(obj)
 

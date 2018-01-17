@@ -18,7 +18,7 @@ VENV_BIN=$(VENV_PATH)/bin
 BROWSER := $(VENV_BIN)/python -c "$$BROWSER_PYSCRIPT"
 
 .PHONY: clean
-clean: clean-pyc clean-test clean-venv ## remove all build, test, coverage and Python artifacts
+clean: clean-pyc clean-test clean-venv clean-install clean-mypy ## remove all build, test, coverage and Python artifacts
 
 .PHONY: clean-pyc
 clean-pyc: ## remove Python file artifacts
@@ -31,6 +31,17 @@ clean-pyc: ## remove Python file artifacts
 clean-test: ## remove test and coverage artifacts
 	rm -f .coverage
 	rm -fr htmlcov/
+	rm -fr .tox/
+
+.PHONY: clean-install
+clean-install:
+	find $(PACKAGES) -name '*.pyc' -delete
+	find $(PACKAGES) -name '__pycache__' -delete
+	rm -rf *.egg-info
+
+.PHONY: clean-mypy
+clean-mypy:
+	rm -rf .mypy_cache
 
 .PHONY: clean-venv
 clean-venv:
@@ -42,7 +53,7 @@ ifeq ($(VENV_EXISTS), 1)
 	@echo virtual env already initialized
 else
 	virtualenv -p python3.6 .venv
-	$(VENV_BIN)/pip install Cython==0.27.3 -vv
+	$(VENV_BIN)/pip install Cython==0.27.3
 	$(VENV_BIN)/pip install -r requirements_dev.txt
 endif
 
@@ -64,6 +75,10 @@ lint: flake8 bandit mypy ## lint
 .PHONY: test
 test: venv ## run tests
 	$(VENV_BIN)/pytest
+
+.PHONY: test-all
+test-all: venv ## run tests on every Python version with tox
+	$(VENV_BIN)/tox
 
 .PHONY: coverage-quiet
 coverage-quiet: venv ## make coverage report
@@ -90,6 +105,22 @@ docs: venv docs-quiet ## make documentation and open it in browser
 .PHONY: servedocs
 servedocs: docs ## compile the docs watching for changes
 	$(VENV_BIN)/watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
+
+.PHONY: release
+release: venv lint test-all ## package and upload a release
+	$(VENV_BIN)/python setup.py sdist upload
+	$(VENV_BIN)/python setup.py bdist_wheel upload
+
+.PHONY: dist
+dist: clean venv ## builds source and wheel package
+	$(VENV_BIN)/python setup.py sdist
+	$(VENV_BIN)/python setup.py bdist_wheel
+	ls -l dist
+
+.PHONY: install
+install: clean venv ## install the package to the active Python's site-packages
+	$(VENV_BIN)/python setup.py install
+
 
 .PHONY: help
 help:  ## Show this help message and exit

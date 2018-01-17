@@ -1,46 +1,39 @@
-#!/usr/bin/env python
-import os
-import io
-import re
-from setuptools import setup
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
+"""The setup script."""
 
-def read(*path):
-    return io.open(
-        os.path.join(*([os.path.dirname(__file__)] + list(path))),
-        encoding="UTF8"
-    ).read()
+from setuptools import setup, find_packages
 
+with open('README.rst') as readme_file:
+    readme = readme_file.read()
 
-VERSION = re.compile(r".*__version__ = '(.*?)'", re.S)\
-    .match(read('aiodirector', '__init__.py')).group(1)
+with open('HISTORY.rst') as history_file:
+    history = history_file.read()
 
-readme = read('README.md')
+with open('requirements.txt') as requirements_file:
+    requirements = requirements_file.read()
 
-requirements = read('requirements.txt')
-
-test_requirements = read('requirements_dev.txt').replace('-r requirements.txt',
-                                                         requirements)
+with open('requirements_dev.txt') as requirements_dev_file:
+    test_requirements = requirements_dev_file.read()
+    test_requirements = test_requirements.replace('-r requirements.txt',
+                                                  requirements)
 
 setup(
     name='aiodirector',
-    version=VERSION,
+    version='0.0.1b1',
     description="Micro framework based on asyncio",
-    long_description=readme,
+    long_description=readme + '\n\n' + history,
     author="Konstantin Stepanov",
     url='https://github.com/konstantin-stepanov/aiodirector',
-    packages=[
-        'aiodirector',
-    ],
-    package_dir={'aiodirector': 'aiodirector'},
+    packages=find_packages(include=['aiodirector']),
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=requirements.split('\n'),
+    license="MIT license",
     zip_safe=False,
     keywords='aiodirector',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
-        'Framework :: AsyncIO',
-        'Operating System :: POSIX',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
@@ -48,5 +41,5 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     test_suite='tests',
-    tests_require=test_requirements
+    tests_require=test_requirements.split('\n'),
 )
