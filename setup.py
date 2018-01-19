@@ -3,7 +3,15 @@
 
 """The setup script."""
 import re
+import sys
 from setuptools import setup, find_packages
+
+
+PY_VER = sys.version_info
+
+if not PY_VER >= (3, 6):
+    raise RuntimeError('aiodirector does not support Python earlier than 3.6')
+
 
 with open('aiodirector/__init__.py') as ver_file:
     version = re.compile(r".*__version__ = '(.*?)'",
