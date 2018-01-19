@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
 import io
-from typing import List, Tuple, Callable, TypeVar
+from typing import List, Tuple, Callable, TypeVar, Type
+from functools import partial
 import asyncio
 import traceback
 from urllib.parse import urlparse
@@ -25,39 +26,12 @@ SpanContext = TypeVar('SpanContext', web_request.Request, azs.SpanAbc)
 class Handler(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, app):
-        """
-        :type app: api_subscribe.core.app.BaseApplication
-        """
-        self.app = app
+    def __init__(self, server: 'Server'):
+        self.server = server
 
-    @staticmethod
-    def get_req_span(request: web_request.Request) -> azs.SpanAbc:
-        if SPAN_KEY not in request:
-            raise UserWarning('Tracer is not initialized')
-        return request[SPAN_KEY]
-
-    def start_span(self, context: SpanContext) -> azs.SpanAbc:
-        if isinstance(context, web_request.Request):
-            parent = self.get_req_span(context)
-        elif isinstance(context, azs.SpanAbc):
-            parent = context
-        else:
-            raise UserWarning('context must be instance of '
-                              'aiohttp.web_request.Request or '
-                              'aiozipkin.span.SpanAbc')
-        span = parent.tracer.new_child(parent.context)
-        span.kind(az.CLIENT)
-        return span
-
-    @abstractmethod
-    def routes(self) -> List[Tuple[str, str, Callable]]:
-        raise NotImplementedError()
-
-    @abstractmethod
-    def error_handler(self, request: web_request.Request,
-                      error: Exception) -> web.Response:
-        raise NotImplementedError()
+    @property
+    def app(self):
+        return self.server.app
 
 
 class ResponseCodec:
@@ -72,25 +46,30 @@ class ResponseCodec:
 
 class Server(Component):
 
-    def __init__(self, host, port, handler,
+    def __init__(self, host, port, handler: Type[Handler],
                  access_log_format=None, access_log=access_logger,
                  shutdown_timeout=60.0):
-        if not isinstance(handler, Handler):
+        if not issubclass(handler, Handler):
             raise UserWarning()
         super(Server, self).__init__()
+        self.web_app = web.Application(loop=self.loop,
+                                       middlewares=[
+                                           self.wrap_middleware, ])
+        self.error_handler = None  # handler.error_handler
+
         self.host = host
         self.port = port
-        self.handler = handler
-        self.error_handler = handler.error_handler
-        self.routes = handler.routes()
+
+
+        # self.routes = self.handler.routes()
         self.access_log_format = access_log_format
         self.access_log = access_log
         self.shutdown_timeout = shutdown_timeout
-        self.web_app = None
         self.web_app_handler = None
         self.servers = None
         self.server_creations = None
         self.uris = None
+        self.handler = handler(self)
 
     async def wrap_middleware(self, app, handler):
         async def middleware_handler(request: web.Request):
@@ -134,26 +113,48 @@ class Server(Component):
 
     async def _error_handle(self, span, request, handler):
         try:
-            return await handler(request), None
+            resp = await handler(request)
+            return resp, None
         except Exception as herr:
             if span is not None:
                 span.tag('error', 'true')
                 span.tag('error.message', str(herr))
-            try:
-                return (await self.error_handler(request, herr),
-                        traceback.format_exc())
-            except Exception as eerr:
-                self.app.log_err(eerr)
-                return (web.Response(status=500, text=''),
-                        traceback.format_exc())
+
+            trace = None
+            if self.error_handler:
+                try:
+                    resp = await self.error_handler(span, request, herr)
+                    trace = traceback.format_exc()
+                except Exception as eerr:
+                    if isinstance(eerr, web.HTTPException):
+                        resp = eerr
+                    else:
+                        self.app.log_err(eerr)
+                        resp = web.Response(status=500, text='')
+                    trace = traceback.format_exc()
+            else:
+                if isinstance(herr, web.HTTPException):
+                    resp = herr
+                else:
+                    resp = web.Response(status=500, text='')
+
+            return resp, trace
+
+    def add_route(self, method, uri, handler):
+        self.web_app.router.add_route(method, uri, partial(self._handle_request, handler))
+
+    def set_error_handler(self, handler):
+        self.error_handler = handler
+
+    async def _handle_request(self, handler, request):
+        res = await handler(request.get(SPAN_KEY), request)
+        return res
 
     async def prepare(self):
         self.app.log_info("Preparing to start http server")
-        self.web_app = web.Application(loop=self.loop,
-                                       middlewares=[
-                                           self.wrap_middleware, ])
-        for method, uri, handler in self.routes:
-            self.web_app.router.add_route(method, uri, handler)
+
+        # for method, uri, handler in self.routes:
+        #     self.web_app.router.add_route(method, uri, handler)
         await self.web_app.startup()
 
         make_handler_kwargs = dict()

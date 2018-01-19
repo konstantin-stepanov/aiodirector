@@ -10,6 +10,7 @@ import types
 from asyncio import ensure_future
 from functools import partial
 from urllib.parse import urlunsplit, urlsplit
+from yarl import URL
 
 
 def async_call(loop, func, *args, delay=None, **kwargs):
@@ -91,6 +92,8 @@ def get_func_params(method, called_params):
 
 
 def _json_encoder(obj):
+    if isinstance(obj, URL):
+        return str(obj)
     if isinstance(obj, decimal.Decimal):
         return float(obj)
     if isinstance(obj, datetime.datetime):

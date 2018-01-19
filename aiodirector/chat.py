@@ -8,14 +8,18 @@ from .error import PrepareError
 from aiotg import Bot, Chat
 import aiozipkin.span as azs
 import aiozipkin.aiohttp_helpers as azah
+from .misc import json_encode
 
 
 class TelegramHandler(object):
     __metaclass__ = ABCMeta
 
     def __init__(self, bot):
-        self.app = None
         self.bot: Telegram = bot
+
+    @property
+    def app(self):
+        return self.bot.app
 
 
 class Telegram(Component):
@@ -27,7 +31,8 @@ class Telegram(Component):
         self.tg_first_name: str = None
         self.tg_username: str = None
         self.api_token: str = api_token
-        self.bot = Bot(self.api_token, api_timeout=60)
+        self.bot = Bot(self.api_token, api_timeout=60,
+                       json_serialize=json_encode)
         self.handler = handler(self)
         self.handler.bot = self
         self._connect_max_attempts = connect_max_attempts
@@ -89,13 +94,14 @@ class Telegram(Component):
     async def api_call(self, context_span: azs.SpanAbc, method, **params):
         self._active_calls += 1
         try:
+            # TODO if tracer is None
             with context_span.tracer.new_child(context_span.context) as span:
                 span.name('telegram:%s' % method)
                 span.kind(azah.CLIENT)
                 span.tag('telegram.method', method)
                 if 'chat_id' in params:
                     span.tag('telegram:chat_id', params.get('chat_id'))
-                span.annotate(json.dumps(params))
+                span.annotate(json_encode(params))
                 await self.bot.api_call(method, **params)
         finally:
             self._active_calls -= 1

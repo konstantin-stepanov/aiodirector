@@ -7,40 +7,39 @@ from aiodirector import http, db, chat
 
 
 class HttpHandler(http.Handler):
-    def __init__(self, app: Application) -> None:
-        self.app: Application = None
-        super(HttpHandler, self).__init__(app)
 
-    def routes(self) -> List[Tuple[str, str, Callable]]:
-        return [
-            ('GET', '/', self.home_handler),
-        ]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.server.add_route('GET', '/', self.home_handler)
+        self.server.set_error_handler(self.error_handler)
 
-    async def error_handler(self, request: web_request.Request,
+    async def error_handler(self, context_span, request: web_request.Request,
                             error: Exception) -> web.Response:
         self.app.log_err(error)
         if isinstance(error, web.HTTPException):
             return error
-        return web.Response(body='Internal Error', status=500)
+        return web.Response(body='Internal Error: ' + str(error), status=500)
 
-    async def home_handler(self, request: web_request.Request) -> web.Response:
-        with self.start_span(request) as span:
+    async def home_handler(self, context_span,
+                           request: web_request.Request) -> web.Response:
+        with context_span.tracer.new_child(context_span.context) as span:
             span.name('test:sleep')
-            with self.start_span(span) as span2:
+            with span.tracer.new_child(context_span.context) as span2:
                 span2.name('test2:sleep')
                 await asyncio.sleep(.1, loop=self.app.loop)
 
-        await self.app.db.query_one(self.get_req_span(request),
+        await self.app.db.query_one(context_span,
                                     'test_query', 'SELECT $1::int as a',
                                     123)
-
+        await self.app.tg.send_message(context_span,
+                                       1825135, request.url)
         return web.Response(text='Hello world!')
 
 
 class TelegramHandler(chat.TelegramHandler):
 
-    def __init__(self, bot):
-        super(TelegramHandler, self).__init__(bot)
+    def __init__(self, *args, **kwargs):
+        super(TelegramHandler, self).__init__(*args, **kwargs)
         cmds = {
             '/start': self.start,
             '/echo (.*)': self.echo,
@@ -73,7 +72,7 @@ if __name__ == '__main__':
         http.Server(
             '127.0.0.1',
             8080,
-            HttpHandler(app)
+            HttpHandler
         )
     )
     app.add(

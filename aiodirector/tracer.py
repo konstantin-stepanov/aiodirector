@@ -15,8 +15,7 @@ class Tracer(azt.Tracer):
 
 class TracerTransport(azt.Transport):
     def __init__(self, app, driver, addr, metrics_diver, metrics_addr,
-                 metrics_name,
-                 send_inteval, loop):
+                 metrics_name, send_inteval, loop):
         """
         :type tracer: str
         :type tracer_url: str
