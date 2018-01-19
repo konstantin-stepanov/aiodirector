@@ -95,19 +95,19 @@ class PgDb(Component):
     def connection(self, context_span):
         return ConnectionContextManager(self, context_span)
 
-    async def query_one(self, context_span: azs.Span, id: str, query: str,
+    async def query_one(self, context_span: azs.SpanAbc, id: str, query: str,
                         *args, timeout: float = None):
         async with self.connection(context_span) as conn:
             return await conn.query_one(context_span, id, query, *args,
                                         timeout=timeout)
 
-    async def query_all(self, context_span: azs.Span, id: str, query: str,
+    async def query_all(self, context_span: azs.SpanAbc, id: str, query: str,
                         *args, timeout: float = None):
         async with self.connection(context_span) as conn:
             return await conn.query_all(context_span, id, query, *args,
                                         timeout=timeout)
 
-    async def execute(self, context_span: azs.Span, id: str, query: str, *args,
+    async def execute(self, context_span: azs.SpanAbc, id: str, query: str, *args,
                       timeout: float = None):
         async with self.connection(context_span) as conn:
             return await conn.execute(context_span, id, query, *args,
@@ -137,7 +137,7 @@ class ConnectionContextManager:
 class TransactionContextManager:
     def __init__(self, context_span, conn, isolation_level=None):
         """
-        :type context_span: azs.Span
+        :type context_span: azs.SpanAbc
         :type conn: Connection
         :type isolation_level: str
         """
@@ -175,13 +175,13 @@ class Connection:
 
     def xact(self, context_span, isolation_level=None):
         """
-        :type context_span: azs.Span
+        :type context_span: azs.SpanAbc
         :type isolation_level: str
         :rtype: TransactionContextManager
         """
         return TransactionContextManager(context_span, self, isolation_level)
 
-    async def execute(self, context_span: azs.Span, id: str,
+    async def execute(self, context_span: azs.SpanAbc, id: str,
                       query: str, *args, timeout: float = None):
         with context_span.tracer.new_child(context_span.context) as span:
             span.kind(az.CLIENT)
@@ -191,7 +191,7 @@ class Connection:
             res = await self._conn.execute(query, *args, timeout=timeout)
         return res
 
-    async def query_one(self, context_span: azs.Span, id: str,
+    async def query_one(self, context_span: azs.SpanAbc, id: str,
                         query: str, *args, timeout: float = None):
         with context_span.tracer.new_child(context_span.context) as span:
             span.kind(az.CLIENT)
@@ -201,7 +201,7 @@ class Connection:
             res = await self._conn.fetchrow(query, *args, timeout=timeout)
         return res
 
-    async def query_all(self, context_span: azs.Span, id: str,
+    async def query_all(self, context_span: azs.SpanAbc, id: str,
                         query: str, *args, timeout: float = None):
         with context_span.tracer.new_child(context_span.context) as span:
             span.kind(az.CLIENT)

@@ -64,7 +64,7 @@ class ResponseCodec:
 
     async def decode(self, context_span, response):
         """
-        :type context_span: azs.Span
+        :type context_span: azs.SpanAbc
         :type response: ClientResponse
         """
         raise NotImplementedError()
@@ -203,7 +203,7 @@ class Client(Component):
                    data=None, headers=None,
                    read_timeout=None, conn_timeout=None, ssl_ctx=None):
         """
-        :type context_span: azs.Span
+        :type context_span: azs.SpanAbc
         :type span_params: dict
         :type response_codec: AbstractResponseCodec
         :type url: str

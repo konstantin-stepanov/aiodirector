@@ -196,8 +196,8 @@ class TaskManager(Component):
         :type envelope: Envelope
         :type properties: Properties
         """
-        context_span: azs.Span = self.app._tracer.new_trace(sampled=True,
-                                                            debug=False)
+        context_span: azs.SpanAbc = self.app._tracer.new_trace(sampled=True,
+                                                               debug=False)
 
         context_span.name('amqp:message')
         context_span.kind(azh.SERVER)
@@ -239,7 +239,7 @@ class TaskManager(Component):
 
     async def run(self, context_span, name, params, delay=None):
         """
-        :type context_span: azs.Span
+        :type context_span: azs.SpanAbc
         :type name: str
         :type delay: datetime.timedelta
         :type params: dict
@@ -281,7 +281,7 @@ class Task:
         :type attempt: int
         """
         self.body = None
-        self.context_span = None  # type: azs.Span
+        self.context_span = None  # type: azs.SpanAbc
         self.tm = tm
         self.app = tm.app
         self.attempt = attempt
@@ -307,7 +307,7 @@ class Task:
         """
         :type tm: TaskManager
         :type body: bytes
-        :type context_span: azs.Span
+        :type context_span: azs.SpanAbc
         :return:
         """
         name, params, attempt = Task.decode(context_span, body)
@@ -324,7 +324,7 @@ class Task:
     @staticmethod
     def decode(context_span, body):
         """
-        :type context_span: azs.Span
+        :type context_span: azs.SpanAbc
         :type body: bytes
         :return:
         """
@@ -358,7 +358,7 @@ class Task:
 
     async def schedule(self, context_span, delay=None):
         """
-        :type context_span: azs.Span
+        :type context_span: azs.SpanAbc
         :type delay: datetime.timedelta
         """
         properties = {"delivery_mode": 2}
