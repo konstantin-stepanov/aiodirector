@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """The setup script."""
-
+import re
 from setuptools import setup, find_packages
+
+with open('aiodirector/__init__.py') as ver_file:
+    version = re.compile(r".*__version__ = '(.*?)'",
+                         re.S).match(ver_file.read()).group(1)
 
 with open('README.rst') as readme_file:
     readme = readme_file.read()
@@ -21,7 +25,7 @@ with open('requirements_dev.txt') as requirements_dev_file:
 
 setup(
     name='aiodirector',
-    version='0.0.1b1',
+    version=version,
     description="Micro framework based on asyncio",
     long_description=readme + '\n\n' + history,
     author="Konstantin Stepanov",

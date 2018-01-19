@@ -3,7 +3,7 @@ import asyncio
 from aiohttp import web, web_request
 from typing import List, Tuple, Callable
 from aiodirector.app import Application
-from aiodirector import http, db
+from aiodirector import http, db, chat
 
 
 class HttpHandler(http.Handler):
@@ -37,6 +37,28 @@ class HttpHandler(http.Handler):
         return web.Response(text='Hello world!')
 
 
+class TelegramHandler(chat.Handler):
+
+    async def init(self):
+        cmds = {
+            '/start': self.start,
+            '/echo (.*)': self.echo,
+        }
+        for regexp, fn in cmds.items():
+            self.add_command(regexp, fn)
+        self.default(self._default)
+
+    async def _default(self, chat, message):
+        await asyncio.sleep(10)
+        await chat.send_text('what?')
+
+    async def start(self, chat, match):
+        await chat.send_text('hello')
+
+    async def echo(self, chat, match):
+        await chat.reply(match.group(1))
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
@@ -64,6 +86,15 @@ if __name__ == '__main__':
             connect_retry_delay=1),
         stop_after=['http_server']
 
+    )
+    app.add(
+        'tg',
+        chat.Telegram(
+            api_token='143877684:AAFIIvo6NfgjhLzd0KjmKo04F3GaOz2TCdY',
+            handler=TelegramHandler(app),
+            connect_max_attempts=10,
+            connect_retry_delay=1,
+        )
     )
 
     app.setup_logging(

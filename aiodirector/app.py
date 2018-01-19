@@ -1,6 +1,7 @@
 import asyncio
 import signal
 import logging
+from typing import Dict
 import aiozipkin as az
 from .error import PrepareError, GracefulExit
 from .tracer import Tracer, TracerTransport
@@ -33,7 +34,7 @@ class Application(object):
     def __init__(self, loop=None) -> None:
         super(Application, self).__init__()
         self.loop = loop or asyncio.get_event_loop()
-        self._components: dict = {}
+        self._components: Dict[str, Component] = {}
         self._stop_deps: dict = {}
         self._stopped: list = []
         self._tracer: Tracer = None
@@ -49,7 +50,7 @@ class Application(object):
         self._components[name] = comp
         self._stop_deps[name] = stop_after
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Component:
         if item not in self._components:
             raise AttributeError
         return self._components[item]
