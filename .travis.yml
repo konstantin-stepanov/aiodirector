@@ -9,8 +9,10 @@ install:
   - pip install -r requirements_dev.txt
 
 script:
-  - make lint
-  - make test
+  - flake8 aiodirector examples tests setup.py
+  - bandit -r ./aiodirector ./examples setup.py
+  - mypy aiodirector examples setup.py --ignore-missing-imports
+  - pytest -v
 
 deploy:
   provider: pypi
