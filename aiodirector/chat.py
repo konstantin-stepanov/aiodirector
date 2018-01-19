@@ -1,8 +1,7 @@
 from functools import partial
 import asyncio
-import json
-from abc import ABCMeta, abstractmethod
-from typing import Dict, Callable, Type
+from abc import ABCMeta
+from typing import Type
 from .app import Component
 from .error import PrepareError
 from aiotg import Bot, Chat
@@ -14,7 +13,7 @@ from .misc import json_encode
 class TelegramHandler(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, bot):
+    def __init__(self, bot: 'Telegram') -> None:
         self.bot: Telegram = bot
 
     @property
@@ -25,26 +24,25 @@ class TelegramHandler(object):
 class Telegram(Component):
     def __init__(self, api_token: str, handler: Type[TelegramHandler],
                  connect_max_attempts: int,
-                 connect_retry_delay: float) -> None:
+                 connect_retry_delay: float,
+                 api_timeout: int = 60) -> None:
         super(Telegram, self).__init__()
         self.tg_id: int = None
         self.tg_first_name: str = None
         self.tg_username: str = None
         self.api_token: str = api_token
-        self.bot = Bot(self.api_token, api_timeout=60,
-                       json_serialize=json_encode)
+        self.bot: Bot = Bot(self.api_token,
+                            api_timeout=api_timeout,
+                            json_serialize=json_encode)
         self.handler = handler(self)
-        self.handler.bot = self
-        self._connect_max_attempts = connect_max_attempts
-        self._connect_retry_delay = connect_retry_delay
+        self._connect_max_attempts: int = connect_max_attempts
+        self._connect_retry_delay: float = connect_retry_delay
         self._run_fut: asyncio.Future = None
-        self._active_calls = 0
-        self._stopping = False
+        self._stopping: bool = False
+        self._active_calls: int = 0
         self._stop_calls_fut: asyncio.Future = None
-
-        self._active_msgs = 0
-        # self._stopping = False
-        self._stop_msgs_fut = None
+        self._active_msgs: int = 0
+        self._stop_msgs_fut: asyncio.Future = None
 
     async def prepare(self) -> None:
         self.app.log_info("Connecting to telegram")
@@ -181,7 +179,7 @@ class Telegram(Component):
 
 
 class TelegramChat:
-    def __init__(self, chat: Chat, bot: Telegram):
+    def __init__(self, chat: Chat, bot: Telegram) -> None:
         self._chat = chat
         self._bot = bot
         self.id = chat.id

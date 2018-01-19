@@ -1,32 +1,30 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 import io
-from typing import List, Tuple, Callable, TypeVar, Type
+from typing import Type, Any
 from functools import partial
 import asyncio
 import traceback
 from urllib.parse import urlparse
-from aiohttp import web, web_request, ClientSession
-from aiohttp import ClientResponse  # noqa
+from aiohttp import web, ClientSession
+from aiohttp import ClientResponse
 from aiohttp.payload import BytesPayload
 from aiohttp import client_exceptions, TCPConnector
 from .app import Component
 import logging
 import aiozipkin as az
 import aiozipkin.aiohttp_helpers as azah
-import aiozipkin.span as azs # noqa
+import aiozipkin.span as azs
 import aiozipkin.constants as azc
 
 
 access_logger = logging.getLogger('aiohttp.access')
 SPAN_KEY = 'zipkin_span'
 
-SpanContext = TypeVar('SpanContext', web_request.Request, azs.SpanAbc)
-
 
 class Handler(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self, server: 'Server'):
+    def __init__(self, server: 'Server') -> None:
         self.server = server
 
     @property
@@ -36,32 +34,25 @@ class Handler(object):
 
 class ResponseCodec:
 
-    async def decode(self, context_span, response):
-        """
-        :type context_span: azs.SpanAbc
-        :type response: ClientResponse
-        """
+    async def decode(self, context_span: azs.SpanAbc,
+                     response: ClientResponse) -> Any:
         raise NotImplementedError()
 
 
 class Server(Component):
 
-    def __init__(self, host, port, handler: Type[Handler],
+    def __init__(self, host: str, port: int, handler: Type[Handler],
                  access_log_format=None, access_log=access_logger,
-                 shutdown_timeout=60.0):
+                 shutdown_timeout=60.0) -> None:
         if not issubclass(handler, Handler):
             raise UserWarning()
         super(Server, self).__init__()
         self.web_app = web.Application(loop=self.loop,
                                        middlewares=[
                                            self.wrap_middleware, ])
-        self.error_handler = None  # handler.error_handler
-
         self.host = host
         self.port = port
-
-
-        # self.routes = self.handler.routes()
+        self.error_handler = None
         self.access_log_format = access_log_format
         self.access_log = access_log
         self.shutdown_timeout = shutdown_timeout
@@ -141,7 +132,8 @@ class Server(Component):
             return resp, trace
 
     def add_route(self, method, uri, handler):
-        self.web_app.router.add_route(method, uri, partial(self._handle_request, handler))
+        self.web_app.router.add_route(method, uri,
+                                      partial(self._handle_request, handler))
 
     def set_error_handler(self, handler):
         self.error_handler = handler
@@ -152,9 +144,6 @@ class Server(Component):
 
     async def prepare(self):
         self.app.log_info("Preparing to start http server")
-
-        # for method, uri, handler in self.routes:
-        #     self.web_app.router.add_route(method, uri, handler)
         await self.web_app.startup()
 
         make_handler_kwargs = dict()
@@ -200,7 +189,8 @@ class Client(Component):
     async def stop(self):
         pass
 
-    async def post(self, context_span, span_params, response_codec, url,
+    async def post(self, context_span: azs.SpanAbc, span_params,
+                   response_codec, url,
                    data=None, headers=None,
                    read_timeout=None, conn_timeout=None, ssl_ctx=None):
         """

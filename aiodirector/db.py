@@ -107,8 +107,8 @@ class PgDb(Component):
             return await conn.query_all(context_span, id, query, *args,
                                         timeout=timeout)
 
-    async def execute(self, context_span: azs.SpanAbc, id: str, query: str, *args,
-                      timeout: float = None):
+    async def execute(self, context_span: azs.SpanAbc, id: str, query: str,
+                      *args, timeout: float = None):
         async with self.connection(context_span) as conn:
             return await conn.execute(context_span, id, query, *args,
                                       timeout=timeout)

@@ -1,13 +1,11 @@
 import logging
 import asyncio
 from aiohttp import web, web_request
-from typing import List, Tuple, Callable
 from aiodirector.app import Application
 from aiodirector import http, db, chat
 
 
 class HttpHandler(http.Handler):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.server.add_route('GET', '/', self.home_handler)
@@ -37,7 +35,6 @@ class HttpHandler(http.Handler):
 
 
 class TelegramHandler(chat.TelegramHandler):
-
     def __init__(self, *args, **kwargs):
         super(TelegramHandler, self).__init__(*args, **kwargs)
         cmds = {
@@ -57,7 +54,7 @@ class TelegramHandler(chat.TelegramHandler):
         await chat.send_text(context_span, 'hello')
 
     async def echo(self, context_span, chat, match):
-        await chat.reply(context_span,match.group(1))
+        await chat.reply(context_span, match.group(1))
 
 
 if __name__ == '__main__':
