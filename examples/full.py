@@ -37,26 +37,28 @@ class HttpHandler(http.Handler):
         return web.Response(text='Hello world!')
 
 
-class TelegramHandler(chat.Handler):
+class TelegramHandler(chat.TelegramHandler):
 
-    async def init(self):
+    def __init__(self, bot):
+        super(TelegramHandler, self).__init__(bot)
         cmds = {
             '/start': self.start,
             '/echo (.*)': self.echo,
         }
         for regexp, fn in cmds.items():
-            self.add_command(regexp, fn)
-        self.default(self._default)
+            self.bot.add_command(regexp, fn)
+        self.bot.set_default(self.default)
 
-    async def _default(self, chat, message):
-        await asyncio.sleep(10)
-        await chat.send_text('what?')
+    async def default(self, context_span, chat, message):
+        await asyncio.sleep(0.2)
+        await self.bot.send_message(context_span, chat.id,
+                                    'what?' + str(context_span))
 
-    async def start(self, chat, match):
-        await chat.send_text('hello')
+    async def start(self, context_span, chat, match):
+        await chat.send_text(context_span, 'hello')
 
-    async def echo(self, chat, match):
-        await chat.reply(match.group(1))
+    async def echo(self, context_span, chat, match):
+        await chat.reply(context_span,match.group(1))
 
 
 if __name__ == '__main__':
@@ -90,8 +92,8 @@ if __name__ == '__main__':
     app.add(
         'tg',
         chat.Telegram(
-            api_token='143877684:AAFIIvo6NfgjhLzd0KjmKo04F3GaOz2TCdY',
-            handler=TelegramHandler(app),
+            api_token='143877684:AAFZ4C-wrlyhT-zIPZMwZnrxmasvg2kzaUw',
+            handler=TelegramHandler,
             connect_max_attempts=10,
             connect_retry_delay=1,
         )

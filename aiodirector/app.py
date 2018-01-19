@@ -89,7 +89,11 @@ class Application(object):
             await self._tracer.close()
 
     def run(self):
-        self.loop.run_until_complete(self.run_prepare())
+        try:
+            self.loop.run_until_complete(self.run_prepare())
+        except PrepareError as e:
+            self.log_err(e)
+            return 1
         self.run_loop()
         self.loop.run_until_complete(self.run_shutdown())
         print("Bye")
@@ -98,13 +102,9 @@ class Application(object):
     async def run_prepare(self):
         self.log_info('Prepare for start')
 
-        try:
-            await asyncio.gather(*[comp.prepare()
-                                   for comp in self._components.values()],
-                                 loop=self.loop)
-        except PrepareError as e:
-            self.log_err(e)
-            return 1
+        await asyncio.gather(*[comp.prepare()
+                               for comp in self._components.values()],
+                             loop=self.loop)
 
         self.log_info('Starting...')
         await asyncio.gather(*[comp.start()
