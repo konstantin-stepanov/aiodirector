@@ -7,7 +7,7 @@ from .error import PrepareError, GracefulExit
 from .tracer import Tracer, TracerTransport
 
 
-logger = logging.getLogger('aiodirector')
+logger = logging.getLogger('aioapp')
 
 
 def _raise_graceful_exit():

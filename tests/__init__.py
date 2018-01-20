@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-"""Unit test package for aiodirector."""
+"""Unit test package for aioapp."""

@@ -10,10 +10,10 @@ from setuptools import setup, find_packages
 PY_VER = sys.version_info
 
 if not PY_VER >= (3, 6):
-    raise RuntimeError('aiodirector does not support Python earlier than 3.6')
+    raise RuntimeError('aioapp does not support Python earlier than 3.6')
 
 
-with open('aiodirector/__init__.py') as ver_file:
+with open('aioapp/__init__.py') as ver_file:
     version = re.compile(r".*__version__ = '(.*?)'",
                          re.S).match(ver_file.read()).group(1)
 
@@ -37,8 +37,8 @@ setup(
     description="Micro framework based on asyncio",
     long_description=readme + '\n\n' + history,
     author="Konstantin Stepanov",
-    url='https://github.com/konstantin-stepanov/aiodirector',
-    packages=find_packages(include=['aiodirector']),
+    url='https://github.com/inplat/aioapp',
+    packages=find_packages(include=['aioapp']),
     include_package_data=True,
     install_requires=list(filter(lambda a: a, requirements.split('\n'))),
     license="MIT license",

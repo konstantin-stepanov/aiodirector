@@ -1,8 +1,8 @@
 import logging
 import asyncio
 from aiohttp import web, web_request
-from aiodirector.app import Application
-from aiodirector import http, db, chat
+from aioapp.app import Application
+from aioapp import http, db, chat
 
 
 class HttpHandler(http.Handler):

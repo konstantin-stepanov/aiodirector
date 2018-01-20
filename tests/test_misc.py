@@ -6,8 +6,8 @@ import asyncio
 from functools import partial
 import pytest
 from yarl import URL
-from aiodirector.misc import (async_call, get_func_params, mask_url_pwd,
-                              json_encode, rndstr, parse_dsn)
+from aioapp.misc import (async_call, get_func_params, mask_url_pwd,
+                         json_encode, rndstr, parse_dsn)
 
 
 async def test_async_call(loop):

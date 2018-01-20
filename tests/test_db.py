@@ -1,7 +1,7 @@
 from typing import Tuple
-from aiodirector.app import Application
-from aiodirector.db import PgDb
-from aiodirector.error import PrepareError
+from aioapp.app import Application
+from aioapp.db import PgDb
+from aioapp.error import PrepareError
 import aiozipkin.span as azs
 import pytest
 

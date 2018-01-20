@@ -59,15 +59,15 @@ endif
 
 .PHONY: flake8
 flake8: venv ## flake8
-	$(VENV_BIN)/flake8 aiodirector examples tests setup.py
+	$(VENV_BIN)/flake8 aioapp examples tests setup.py
 
 .PHONY: bandit
 bandit: venv  # find common security issues in code
-	$(VENV_BIN)/bandit -r ./aiodirector ./examples setup.py
+	$(VENV_BIN)/bandit -r ./aioapp ./examples setup.py
 
 .PHONY: mypy
 mypy: venv ## lint
-	$(VENV_BIN)/mypy aiodirector examples setup.py --ignore-missing-imports
+	$(VENV_BIN)/mypy aioapp examples setup.py --ignore-missing-imports
 
 .PHONY: lint
 lint: flake8 bandit mypy ## lint
@@ -82,7 +82,7 @@ test-all: venv ## run tests on every Python version with tox
 
 .PHONY: coverage-quiet
 coverage-quiet: venv ## make coverage report
-		$(VENV_BIN)/coverage run --source aiodirector -m pytest
+		$(VENV_BIN)/coverage run --source aioapp -m pytest
 		$(VENV_BIN)/coverage report -m
 		$(VENV_BIN)/coverage html
 
@@ -92,9 +92,9 @@ coverage: venv coverage-quiet ## make coverage report and open it in browser
 
 .PHONY: docs
 docs-quiet: venv ## make documentation
-	rm -f docs/aiodirector.rst
+	rm -f docs/aioapp.rst
 	rm -f docs/modules.rst
-	.venv/bin/sphinx-apidoc -o docs/ aiodirector
+	.venv/bin/sphinx-apidoc -o docs/ aioapp
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 

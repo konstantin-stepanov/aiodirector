@@ -1,4 +1,4 @@
-* aiodirector version:
+* aioapp version:
 * Python version:
 * Operating System:
 

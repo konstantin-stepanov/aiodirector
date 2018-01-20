@@ -14,7 +14,7 @@ import asyncpg
 from docker.client import DockerClient
 from docker.utils import kwargs_from_env
 from async_generator import yield_, async_generator
-from aiodirector.app import Application
+from aioapp.app import Application
 
 # отключаем логи ошибок, чтоб не засирать вывод
 # logging.basicConfig(level=logging.CRITICAL)

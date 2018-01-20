@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Top-level package for aiodirector."""
+"""Top-level package for aioapp."""
 
 __author__ = """Konstantin Stepanov"""
 __version__ = '0.0.1b2'

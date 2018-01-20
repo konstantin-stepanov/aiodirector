@@ -1,4 +1,4 @@
-Welcome to aiodirector's documentation!
+Welcome to aioapp's documentation!
 ======================================
 
 Contents:

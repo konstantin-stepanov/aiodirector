@@ -2,6 +2,6 @@
 Usage
 =====
 
-To use aiodirector in a project::
+To use aioapp in a project::
 
-    import aiodirector
+    import aioapp
