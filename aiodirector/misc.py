@@ -31,6 +31,7 @@ def async_call(loop, func, *args, delay=None, **kwargs):
         ensure_future(func(*args, **kwargs), loop=loop)
 
     if delay:
+        print(delay)
         loop.call_later(delay, partial(_call, func, *args, **kwargs))
     else:
         loop.call_soon(partial(_call, func, *args, **kwargs))
@@ -74,17 +75,17 @@ def get_func_params(method, called_params):
         elif i - arg_count + arg_def_count >= 0:
             params[arg] = insp.defaults[i - arg_count + arg_def_count]
         else:
-            raise Exception('Argument "%s" not given' % arg)
+            raise TypeError('Argument "%s" not given' % arg)
     for kwarg in insp.kwonlyargs:
         if kwarg in _called_params:
             params[kwarg] = _called_params.pop(kwarg)
         elif kwarg in insp.kwonlydefaults:
             params[kwarg] = insp.kwonlydefaults[kwarg]
         else:
-            raise Exception('Argument "%s" not given' % kwarg)
+            raise TypeError('Argument "%s" not given' % kwarg)
     if insp.varkw is None:
         if len(_called_params) > 0:
-            raise Exception('Got unexpected parameter(s): %s'
+            raise TypeError('Got unexpected parameter(s): %s'
                             '' % (", ".join(_called_params)))
     else:
         params.update(_called_params)

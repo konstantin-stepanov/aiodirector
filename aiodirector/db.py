@@ -10,9 +10,10 @@ from .misc import mask_url_pwd
 
 
 class PgDb(Component):
-    def __init__(self, dsn, pool_min_size, pool_max_size, pool_max_queries,
-                 pool_max_inactive_connection_lifetime, connect_max_attempts,
-                 connect_retry_delay) -> None:
+    def __init__(self, dsn, pool_min_size=10, pool_max_size=10,
+                 pool_max_queries=50000,
+                 pool_max_inactive_connection_lifetime=300.0,
+                 connect_max_attempts=10, connect_retry_delay=1.0) -> None:
         super(PgDb, self).__init__()
         self.dsn = dsn
         self.pool_min_size = pool_min_size
