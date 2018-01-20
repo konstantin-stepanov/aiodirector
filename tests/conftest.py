@@ -1,21 +1,11 @@
 import gc
-import os
 import time
-import json
-import uuid
-import hashlib
 import logging
-import hmac
 import aiohttp
 import asyncio
 import socket
-import functools
-from functools import partial
 import pytest
-from yarl import URL
-from aiohttp import web, hdrs
 from aiohttp.test_utils import TestServer
-from aiohttp.helpers import sentinel
 import aioamqp
 import aioamqp.channel
 import aioamqp.protocol

@@ -32,7 +32,7 @@ with open('requirements_dev.txt') as requirements_dev_file:
                                                   requirements)
 
 setup(
-    name='aiodirector',
+    name='aioapp',
     version=version,
     description="Micro framework based on asyncio",
     long_description=readme + '\n\n' + history,
@@ -43,7 +43,7 @@ setup(
     install_requires=list(filter(lambda a: a, requirements.split('\n'))),
     license="MIT license",
     zip_safe=False,
-    keywords='aiodirector',
+    keywords='aioapp',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

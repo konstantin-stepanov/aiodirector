@@ -1,4 +1,4 @@
-from typing import Tuple, Awaitable
+from typing import Tuple
 from aiodirector.app import Application
 from aiodirector.db import PgDb
 from aiodirector.error import PrepareError
@@ -6,7 +6,7 @@ import aiozipkin.span as azs
 import pytest
 
 
-async def _start_postgres(app: Application, postgres:Tuple[str, int],
+async def _start_postgres(app: Application, postgres: Tuple[str, int],
                           connect_max_attempts=10,
                           connect_retry_delay=1.0) -> PgDb:
     dsn = 'postgres://postgres@%s:%d/postgres' % (postgres[0], postgres[1])
@@ -31,7 +31,8 @@ async def test_pgdb(app, postgres):
     assert res is not None
 
     res = await db.query_one(span, 'test',
-                             'SELECT $1::int as a, $2::json, $3::jsonb', 1, {}, {}, timeout=10)
+                             'SELECT $1::int as a, $2::json, $3::jsonb', 1, {},
+                             {}, timeout=10)
     assert res is not None
     assert len(res) == 3
     assert res[0] == 1
@@ -62,17 +63,17 @@ async def test_pgdb(app, postgres):
         async with conn.xact(span, isolation_level='READ COMMITTED'):
             await conn.execute(span, 'test', 'CREATE TABLE test(id int);')
             await conn.execute(span, 'test',
-                             'INSERT INTO test(id) VALUES(1)')
+                               'INSERT INTO test(id) VALUES(1)')
 
     res = await db.query_one(span, 'test',
-                           'SELECT COUNT(*) FROM test', timeout=10)
+                             'SELECT COUNT(*) FROM test', timeout=10)
     assert res[0] == 1
 
     try:
         async with db.connection(span) as conn:
             async with conn.xact(span, isolation_level='READ COMMITTED'):
                 await conn.execute(span, 'test',
-                                 'INSERT INTO test(id) VALUES(2)')
+                                   'INSERT INTO test(id) VALUES(2)')
                 raise UserWarning()
     except UserWarning:
         pass
